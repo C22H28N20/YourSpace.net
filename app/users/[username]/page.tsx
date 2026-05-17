@@ -389,10 +389,7 @@ export default function ProfilePage({ params }: ProfilePageProps) {
           </div>
         </section>
 
-        <section className="widget">
-          <h3>Custom User CSS</h3>
-          <pre className="css-preview"></pre>
-        </section>
+        {/* Custom user CSS feature removed. */}
       </div>
     </PageShell>
   );
