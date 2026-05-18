@@ -613,15 +613,21 @@ export function respondToFriendRequest(input: { requestId: number; userId: numbe
   return { requestId: input.requestId, status: input.status };
 }
 
-export function listFriends(userId: number) {
-  return db
-    .prepare(`
-      SELECT u.user_id, u.username, u.user_email
-      FROM Friendlist f
-      JOIN "User" u ON CASE WHEN f.user_1_id = ? THEN f.user_2_id ELSE f.user_1_id END = u.user_id
-      WHERE f.user_1_id = ? OR f.user_2_id = ?
-    `)
-    .all(userId, userId, userId)
+export function listFriends(userId: number, offset: number = 0, limit: number = -1) {
+  const query = `
+    SELECT u.user_id, u.username, u.user_email
+    FROM Friendlist f
+    JOIN "User" u ON CASE WHEN f.user_1_id = ? THEN f.user_2_id ELSE f.user_1_id END = u.user_id
+    WHERE f.user_1_id = ? OR f.user_2_id = ?
+  `;
+  
+  const queryWithLimit = limit > 0 ? `${query} LIMIT ? OFFSET ?` : query;
+  
+  const stmt = db.prepare(queryWithLimit);
+  const params = limit > 0 ? [userId, userId, userId, limit, offset] : [userId, userId, userId];
+  
+  return stmt
+    .all(...params)
     .map((u: any) => ({ id: u.user_id, username: u.username, email: u.user_email }));
 }
 
@@ -644,6 +650,12 @@ export function blockUser(input: { blockerId: number; username: string }) {
   }
 
   return { blockerId: input.blockerId, blockedUserId: blockedUser.user_id };
+}
+
+export function unfriendUser(userId: number, friendId: number) {
+  const [user1Id, user2Id] = [userId, friendId].sort((a, b) => a - b);
+  db.prepare(`DELETE FROM Friendlist WHERE user_1_id = ? AND user_2_id = ?`).run(user1Id, user2Id);
+  return { ok: true };
 }
 
 export function unblockUser(blockerId: number, blockedUserId: number) {
