@@ -31,6 +31,15 @@ export const loginSchema = z.object({
 
 // ===== PROFILE MANAGEMENT SCHEMAS =====
 
+export const colorBlindModeSchema = z.enum([
+  "default",
+  "protanopia",
+  "deuteranopia",
+  "tritanopia",
+  "monochrome",
+  "high-contrast"
+]);
+
 // Schema for updating user profile: all fields are optional for flexibility.
 // Allows partial updates of profile information.
 export const updateProfileSchema = z.object({
@@ -38,6 +47,7 @@ export const updateProfileSchema = z.object({
   bio: z.string().max(280, "Bio must be at most 280 characters").optional(),
   headerImageId: z.number().int().positive().optional(),
   profileImageId: z.number().int().positive().optional(),
+  colorBlindMode: colorBlindModeSchema.optional(),
   headerImageX: z.number().optional(),
   headerImageY: z.number().optional(),
   headerImageScale: z.number().min(0.5).max(3).optional(),

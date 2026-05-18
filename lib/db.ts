@@ -101,12 +101,15 @@ function initializeDatabase() {
 
       ensure("header_img", "INTEGER");
       ensure("profile_img", "INTEGER");
+      ensure("color_blind_mode", "TEXT DEFAULT 'default'");
       ensure("header_img_x", "REAL DEFAULT 0");
       ensure("header_img_y", "REAL DEFAULT 0");
       ensure("header_img_scale", "REAL DEFAULT 1");
       ensure("profile_img_x", "REAL DEFAULT 0");
       ensure("profile_img_y", "REAL DEFAULT 0");
       ensure("profile_img_scale", "REAL DEFAULT 1");
+
+      db.prepare(`UPDATE user_profile SET color_blind_mode = 'default' WHERE color_blind_mode IS NULL OR color_blind_mode = ''`).run();
     } catch (err) {
       console.warn("[DB] Migration check failed:", err);
     }

@@ -28,6 +28,17 @@ type BlockedUser = {
   };
 };
 
+type ColorBlindMode = "default" | "protanopia" | "deuteranopia" | "tritanopia" | "monochrome" | "high-contrast";
+
+const colorBlindModeOptions: Array<{ value: ColorBlindMode; label: string; description: string }> = [
+  { value: "default", label: "Default", description: "Original site palette." },
+  { value: "protanopia", label: "Protanopia", description: "Red-weak friendly palette." },
+  { value: "deuteranopia", label: "Deuteranopia", description: "Green-weak friendly palette." },
+  { value: "tritanopia", label: "Tritanopia", description: "Blue-yellow adjusted palette." },
+  { value: "monochrome", label: "Monochrome", description: "Low-colour grayscale palette." },
+  { value: "high-contrast", label: "High Contrast", description: "Maximum contrast for readability." }
+];
+
 function getMediaLabel(typeName: string | null | undefined) {
   if (typeName === "header") return "Banner";
   if (typeName === "profile") return "Profile Picture";
@@ -52,6 +63,7 @@ export default function SettingsPage() {
   const [headerImageX, setHeaderImageX] = useState(0);
   const [headerImageY, setHeaderImageY] = useState(0);
   const [headerImageScale, setHeaderImageScale] = useState(1);
+  const [colorBlindMode, setColorBlindMode] = useState<ColorBlindMode>("default");
   const [imageTypes, setImageTypes] = useState<ImageType[]>([]);
   const [images, setImages] = useState<ImageRecord[]>([]);
   const [newImageSource, setNewImageSource] = useState("");
@@ -74,6 +86,14 @@ export default function SettingsPage() {
 
   const selectedBanner = images.find((image) => image.id === headerImageId) ?? null;
   const selectedAvatar = images.find((image) => image.id === profileImageId) ?? null;
+
+  useEffect(() => {
+    if (typeof document === "undefined") {
+      return;
+    }
+
+    document.body.dataset.colorMode = colorBlindMode;
+  }, [colorBlindMode]);
 
   async function loadMedia() {
     const [imagesResponse, typesResponse] = await Promise.all([
@@ -110,6 +130,7 @@ export default function SettingsPage() {
         setBio(data?.user?.profile?.bio ?? "");
         setHeaderImageId(data?.user?.profile?.header_img ?? null);
         setProfileImageId(data?.user?.profile?.profile_img ?? null);
+        setColorBlindMode((data?.user?.profile?.color_blind_mode ?? "default") as ColorBlindMode);
         setHeaderImageX(data?.user?.profile?.header_img_x ?? 0);
         setHeaderImageY(data?.user?.profile?.header_img_y ?? 0);
         setHeaderImageScale(data?.user?.profile?.header_img_scale ?? 1);
@@ -142,6 +163,7 @@ export default function SettingsPage() {
 
     try {
       const payload: Record<string, unknown> = { username, bio };
+      payload.colorBlindMode = colorBlindMode;
 
       if (headerImageId !== null) {
         payload.headerImageId = headerImageId;
@@ -171,6 +193,7 @@ export default function SettingsPage() {
       setUsername(data?.user?.username ?? username);
       setHeaderImageId(data?.user?.profile?.header_img ?? headerImageId);
       setProfileImageId(data?.user?.profile?.profile_img ?? profileImageId);
+      setColorBlindMode((data?.user?.profile?.color_blind_mode ?? colorBlindMode) as ColorBlindMode);
       setHeaderImageX(data?.user?.profile?.header_img_x ?? headerImageX);
       setHeaderImageY(data?.user?.profile?.header_img_y ?? headerImageY);
       setHeaderImageScale(data?.user?.profile?.header_img_scale ?? headerImageScale);
@@ -214,6 +237,7 @@ export default function SettingsPage() {
       const data = await response.json();
       setHeaderImageId(data?.user?.profile?.header_img ?? headerImageId);
       setProfileImageId(data?.user?.profile?.profile_img ?? profileImageId);
+      setColorBlindMode((data?.user?.profile?.color_blind_mode ?? colorBlindMode) as ColorBlindMode);
       setHeaderImageX(data?.user?.profile?.header_img_x ?? headerImageX);
       setHeaderImageY(data?.user?.profile?.header_img_y ?? headerImageY);
       setHeaderImageScale(data?.user?.profile?.header_img_scale ?? headerImageScale);
@@ -451,6 +475,22 @@ export default function SettingsPage() {
               onChange={(event) => setBio(event.target.value)}
               disabled={isLoadingProfile}
             />
+            <label htmlFor="settings-color-mode">Colour-blind mode</label>
+            <select
+              id="settings-color-mode"
+              value={colorBlindMode}
+              onChange={(event) => setColorBlindMode(event.target.value as ColorBlindMode)}
+              disabled={isLoadingProfile}
+            >
+              {colorBlindModeOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label} - {option.description}
+                </option>
+              ))}
+            </select>
+            <p style={{ margin: 0, color: "#32517f" }}>
+              This updates the site colours across the app and is saved to your account.
+            </p>
             {profileError && <div className="error-message">{profileError}</div>}
             <button type="button" onClick={handleSaveProfile} disabled={isLoadingProfile || isSavingProfile}>
               {isSavingProfile ? "Saving..." : "Save profile"}

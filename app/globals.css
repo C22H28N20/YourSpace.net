@@ -13,6 +13,67 @@
   --glow: rgba(252, 255, 120, 0.8);
 }
 
+body[data-color-mode="protanopia"] {
+  --bg-1: #083b78;
+  --bg-2: #4f78ff;
+  --bg-3: #ffe08a;
+  --primary: #0d5bd7;
+  --primary-2: #0ea88d;
+  --danger: #8c53c7;
+  --line: #123b8a;
+  --glow: rgba(255, 221, 95, 0.95);
+}
+
+body[data-color-mode="deuteranopia"] {
+  --bg-1: #0d2f6d;
+  --bg-2: #4e8eff;
+  --bg-3: #f6df88;
+  --primary: #145fe0;
+  --primary-2: #008d91;
+  --danger: #8e5dbf;
+  --line: #173d8f;
+  --glow: rgba(255, 226, 113, 0.95);
+}
+
+body[data-color-mode="tritanopia"] {
+  --bg-1: #143c7d;
+  --bg-2: #ff8e6d;
+  --bg-3: #f3db73;
+  --primary: #1758c2;
+  --primary-2: #2f9c77;
+  --danger: #b14a5d;
+  --line: #1f4ca7;
+  --glow: rgba(255, 214, 115, 0.95);
+}
+
+body[data-color-mode="monochrome"] {
+  --bg-1: #232323;
+  --bg-2: #6e6e6e;
+  --bg-3: #d5d5d5;
+  --ink: #111111;
+  --paper: #f4f4f4;
+  --paper-2: #dfdfdf;
+  --primary: #4f4f4f;
+  --primary-2: #7e7e7e;
+  --danger: #424242;
+  --line: #444444;
+  --glow: rgba(255, 255, 255, 0.7);
+}
+
+body[data-color-mode="high-contrast"] {
+  --bg-1: #000000;
+  --bg-2: #1b1b1b;
+  --bg-3: #ffffff;
+  --ink: #000000;
+  --paper: #ffffff;
+  --paper-2: #f1f1f1;
+  --primary: #003bff;
+  --primary-2: #00a38a;
+  --danger: #c30021;
+  --line: #000000;
+  --glow: rgba(255, 255, 255, 1);
+}
+
 * {
   box-sizing: border-box;
 }

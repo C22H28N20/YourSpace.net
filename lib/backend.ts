@@ -299,6 +299,7 @@ export function updateProfile(
     bio?: string;
     headerImageId?: number | null;
     profileImageId?: number | null;
+    colorBlindMode?: string;
     headerImageX?: number;
     headerImageY?: number;
     headerImageScale?: number;
@@ -323,6 +324,9 @@ export function updateProfile(
   if (input.profileImageId !== undefined) {
     db.prepare(`UPDATE user_profile SET profile_img = ? WHERE user_id = ?`).run(input.profileImageId, userId);
   }
+  if (input.colorBlindMode !== undefined) {
+    db.prepare(`UPDATE user_profile SET color_blind_mode = ? WHERE user_id = ?`).run(input.colorBlindMode, userId);
+  }
   if (input.headerImageX !== undefined) {
     db.prepare(`UPDATE user_profile SET header_img_x = ? WHERE user_id = ?`).run(input.headerImageX, userId);
   }
@@ -333,11 +337,11 @@ export function updateProfile(
     db.prepare(`UPDATE user_profile SET header_img_scale = ? WHERE user_id = ?`).run(input.headerImageScale, userId);
   }
 
-  const profile = db.prepare(`SELECT bio, header_img, profile_img, header_img_x, header_img_y, header_img_scale FROM user_profile WHERE user_id = ?`).get(userId) as any;
+  const profile = db.prepare(`SELECT bio, header_img, profile_img, color_blind_mode, header_img_x, header_img_y, header_img_scale FROM user_profile WHERE user_id = ?`).get(userId) as any;
   return {
     id: user.user_id,
     username: input.username !== undefined ? normalizeUsername(input.username) : user.username,
-    profile: profile ?? { bio: null, header_img: null, profile_img: null, header_img_x: 0, header_img_y: 0, header_img_scale: 1 }
+    profile: profile ?? { bio: null, header_img: null, profile_img: null, color_blind_mode: "default", header_img_x: 0, header_img_y: 0, header_img_scale: 1 }
   };
 }
 
@@ -679,7 +683,7 @@ export function getUserProfile(username: string) {
   const user = db
     .prepare(
       `
-    SELECT u.user_id, u.username, u.user_email, p.bio, p.header_img, p.profile_img, p.header_img_x, p.header_img_y, p.header_img_scale, ep.last_seen, ep.status
+    SELECT u.user_id, u.username, u.user_email, p.bio, p.header_img, p.profile_img, p.color_blind_mode, p.header_img_x, p.header_img_y, p.header_img_scale, ep.last_seen, ep.status
     FROM "User" u
     LEFT JOIN user_profile p ON u.user_id = p.user_id
     LEFT JOIN user_presence ep ON u.user_id = ep.user_id
@@ -698,6 +702,7 @@ export function getUserProfile(username: string) {
           bio: user.bio,
           header_img: user.header_img,
           profile_img: user.profile_img,
+          color_blind_mode: user.color_blind_mode ?? "default",
           header_img_x: user.header_img_x ?? 0,
           header_img_y: user.header_img_y ?? 0,
           header_img_scale: user.header_img_scale ?? 1
@@ -705,6 +710,14 @@ export function getUserProfile(username: string) {
         friends: listFriends(user.user_id)
       }
     : null;
+}
+
+export function getUserColorBlindMode(userId: number) {
+  const profile = db
+    .prepare(`SELECT color_blind_mode FROM user_profile WHERE user_id = ?`)
+    .get(userId) as { color_blind_mode?: string } | undefined;
+
+  return profile?.color_blind_mode ?? "default";
 }
 
 export function getUserById(userId: number) {

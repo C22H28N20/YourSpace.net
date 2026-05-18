@@ -11,14 +11,14 @@ export async function GET() {
     return unauthorizedResponse();
   }
 
-  const profile = db.prepare(`SELECT bio, header_img, profile_img, header_img_x, header_img_y, header_img_scale FROM user_profile WHERE user_id = ?`).get(user.id) as
-    | { bio: string | null; header_img: number | null; profile_img: number | null; header_img_x: number | null; header_img_y: number | null; header_img_scale: number | null }
+  const profile = db.prepare(`SELECT bio, header_img, profile_img, color_blind_mode, header_img_x, header_img_y, header_img_scale FROM user_profile WHERE user_id = ?`).get(user.id) as
+    | { bio: string | null; header_img: number | null; profile_img: number | null; color_blind_mode: string | null; header_img_x: number | null; header_img_y: number | null; header_img_scale: number | null }
     | undefined;
 
   return NextResponse.json({
     user: {
       ...user,
-      profile: profile ?? { bio: null, header_img: null, profile_img: null, header_img_x: 0, header_img_y: 0, header_img_scale: 1 }
+      profile: profile ?? { bio: null, header_img: null, profile_img: null, color_blind_mode: "default", header_img_x: 0, header_img_y: 0, header_img_scale: 1 }
     }
   });
 }

@@ -31,6 +31,7 @@ CREATE TABLE IF NOT EXISTS user_profile (
     bio TEXT,
     header_img INTEGER,
     profile_img INTEGER,
+    color_blind_mode TEXT DEFAULT 'default',
     header_img_x REAL DEFAULT 0,
     header_img_y REAL DEFAULT 0,
     header_img_scale REAL DEFAULT 1,

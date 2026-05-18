@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Press_Start_2P, VT323 } from "next/font/google";
 import "./globals.css";
 import { TopNav } from "@/components/top-nav";
+import { getCurrentUser, getUserColorBlindMode } from "@/lib/backend";
 
 // Pixel-style heading font for titles and navigation tabs.
 const headingFont = Press_Start_2P({
@@ -23,14 +24,17 @@ export const metadata: Metadata = {
 };
 
 // Root layout only provides the shared shell so route changes can paint immediately.
-export default function RootLayout({
+export default async function RootLayout({
   children
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const currentUser = await getCurrentUser();
+  const colorBlindMode = currentUser ? getUserColorBlindMode(currentUser.id) : "default";
+
   return (
-    <html lang="en">
-      <body className={`${headingFont.variable} ${bodyFont.variable}`}>
+    <html lang="en" data-color-mode={colorBlindMode}>
+      <body className={`${headingFont.variable} ${bodyFont.variable}`} data-color-mode={colorBlindMode}>
         {/* Ambient grid texture behind the full page. */}
         <div className="bg-grid" />
         <div className="site-frame">
