@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser, unfriendUser, unauthorizedResponse } from "@/lib/backend";
 
-export async function DELETE(request: Request, { params }: { params: { id: string } }) {
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
   // Delete friendship relationship
   const user = await getCurrentUser();
 
@@ -9,7 +9,8 @@ export async function DELETE(request: Request, { params }: { params: { id: strin
     return unauthorizedResponse();
   }
 
-  const friendId = parseInt(params.id, 10);
+  const { id } = await params;
+  const friendId = parseInt(id, 10);
   if (isNaN(friendId)) {
     return NextResponse.json({ error: "Invalid friend ID" }, { status: 400 });
   }
