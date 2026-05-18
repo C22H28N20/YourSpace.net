@@ -32,7 +32,9 @@ export default function FriendsPage() {
   const [friends, setFriends] = useState<Friend[]>([]);
   const [totalFriends, setTotalFriends] = useState(0);
   const [friendsPage, setFriendsPage] = useState(0);
+  const [usersPage, setUsersPage] = useState(0);
   const friendsPerPage = 10;
+  const usersPerPage = 10;
   const [allUsers, setAllUsers] = useState<User[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -101,6 +103,7 @@ export default function FriendsPage() {
       user.username.toLowerCase().includes(searchQuery.toLowerCase())
     );
     setFilteredUsers(filtered);
+    setUsersPage(0);
   }, [searchQuery, allUsers]);
 
   async function respondToRequest(id: number, status: "accepted" | "declined") {
@@ -219,53 +222,93 @@ export default function FriendsPage() {
               {searchQuery ? "No users found matching your search." : "No users available."}
             </p>
           ) : (
-            <ul className="list-grid">
-              {filteredUsers
-                .filter((user) => user.username !== currentUsername && user.username !== "admin")
-                .map((user, index) => (
-                  <li key={`search-${index}-${user.user_id}`}>
-                    <div>
-                      <strong>{user.username}</strong>
-                    </div>
-                    <div className="pill-row">
-                      <a
-                        href={`/users/${encodeURIComponent(user.username)}`}
-                        style={{
-                          flex: 1,
-                          textAlign: "center",
-                          padding: "8px",
-                          border: "1px solid #ddd",
-                          borderRadius: "4px",
-                          textDecoration: "none",
-                          color: "#333",
-                          fontSize: "14px",
-                          transition: "all 0.2s ease"
-                        }}
-                      >
-                        View Profile
-                      </a>
-                      {blockedUserIds.has(user.user_id) ? (
-                        <button
-                          type="button"
-                          onClick={() => handleUnblockUser(user.user_id)}
-                          style={{ padding: "0.45rem 0.8rem", fontSize: "0.9rem" }}
+            <>
+              <ul className="list-grid">
+                {filteredUsers
+                  .filter((user) => user.username !== currentUsername && user.username !== "admin")
+                  .slice(usersPage * usersPerPage, (usersPage + 1) * usersPerPage)
+                  .map((user, index) => (
+                    <li key={`search-${index}-${user.user_id}`}>
+                      <div>
+                        <strong>{user.username}</strong>
+                      </div>
+                      <div className="pill-row">
+                        <a
+                          href={`/users/${encodeURIComponent(user.username)}`}
+                          style={{
+                            flex: 1,
+                            textAlign: "center",
+                            padding: "8px",
+                            border: "1px solid #ddd",
+                            borderRadius: "4px",
+                            textDecoration: "none",
+                            color: "#333",
+                            fontSize: "14px",
+                            transition: "all 0.2s ease"
+                          }}
                         >
-                          Unblock
-                        </button>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={() => handleBlockUser(user.username)}
-                          className="danger"
-                          style={{ padding: "0.45rem 0.8rem", fontSize: "0.9rem" }}
-                        >
-                          Block
-                        </button>
-                      )}
-                    </div>
-                  </li>
-                ))}
-            </ul>
+                          View Profile
+                        </a>
+                        {blockedUserIds.has(user.user_id) ? (
+                          <button
+                            type="button"
+                            onClick={() => handleUnblockUser(user.user_id)}
+                            style={{ padding: "0.45rem 0.8rem", fontSize: "0.9rem" }}
+                          >
+                            Unblock
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => handleBlockUser(user.username)}
+                            className="danger"
+                            style={{ padding: "0.45rem 0.8rem", fontSize: "0.9rem" }}
+                          >
+                            Block
+                          </button>
+                        )}
+                      </div>
+                    </li>
+                  ))}
+              </ul>
+              <div style={{
+                display: "flex",
+                justifyContent: "center",
+                gap: "0.5rem",
+                marginTop: "1rem",
+                alignItems: "center"
+              }}>
+                <button
+                  type="button"
+                  onClick={() => setUsersPage(usersPage - 1)}
+                  disabled={usersPage === 0}
+                  style={{
+                    padding: "0.5rem 1rem",
+                    fontSize: "1.2rem",
+                    cursor: usersPage === 0 ? "not-allowed" : "pointer",
+                    opacity: usersPage === 0 ? 0.5 : 1
+                  }}
+                >
+                  ← Prev
+                </button>
+                <span style={{ fontSize: "0.9rem", color: "#666" }}>
+                  Page {usersPage + 1} of {Math.ceil(filteredUsers.filter((user) => user.username !== currentUsername && user.username !== "admin").length / usersPerPage) || 1}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setUsersPage(usersPage + 1)}
+                  disabled={usersPage >= Math.ceil(filteredUsers.filter((user) => user.username !== currentUsername && user.username !== "admin").length / usersPerPage) - 1}
+                  style={{
+                    padding: "0.5rem 1rem",
+                    fontSize: "1.2rem",
+                    cursor: usersPage >= Math.ceil(filteredUsers.filter((user) => user.username !== currentUsername && user.username !== "admin").length / usersPerPage) - 1 ? "not-allowed" : "pointer",
+                    opacity: usersPage >= Math.ceil(filteredUsers.filter((user) => user.username !== currentUsername && user.username !== "admin").length / usersPerPage) - 1 ? 0.5 : 1
+                  }}
+                >
+                  Next →
+                </button>
+              </div>
+            </>
           )}
         </section>
 
