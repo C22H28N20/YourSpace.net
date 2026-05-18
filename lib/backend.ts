@@ -734,7 +734,21 @@ export function createImageType(input: { name: string }) {
   return result;
 }
 
-export function listImages() {
+export function listImages(userId?: number) {
+  if (userId) {
+    return db
+      .prepare(
+        `
+      SELECT i.image_id as id, i.image_source as source, it.image_type_id as imageTypeId, it.image_type_name as imageTypeName
+      FROM images i
+      LEFT JOIN image_types it ON i.image_type_id = it.image_type_id
+      WHERE i.user_id = ?
+      ORDER BY i.image_id DESC
+    `
+      )
+      .all(userId)
+      .map((img: any) => ({ ...img, imageType: { id: img.imageTypeId, name: img.imageTypeName } }));
+  }
   return db
     .prepare(
       `
@@ -748,10 +762,10 @@ export function listImages() {
     .map((img: any) => ({ ...img, imageType: { id: img.imageTypeId, name: img.imageTypeName } }));
 }
 
-export function createImage(input: { source: string; imageTypeId?: number }) {
+export function createImage(input: { userId: number; source: string; imageTypeId?: number }) {
   const result = db
-    .prepare(`INSERT INTO images (image_source, image_type_id) VALUES (?, ?) RETURNING image_id as id, image_source as source, image_type_id as imageTypeId`)
-    .get(input.source, input.imageTypeId ?? null) as any;
+    .prepare(`INSERT INTO images (user_id, image_source, image_type_id) VALUES (?, ?, ?) RETURNING image_id as id, image_source as source, image_type_id as imageTypeId`)
+    .get(input.userId, input.source, input.imageTypeId ?? null) as any;
   return result;
 }
 

@@ -100,7 +100,21 @@ export const imageTypeSchema = z.object({
 
 // Schema for uploading/referencing images: source URL and optional category.
 // Source must be a valid URL to prevent malicious input.
+// File type must be an image or gif.
 export const imageSchema = z.object({
-  source: z.string().trim().min(1, "Image source is required").max(1000, "Image source must be at most 1000 characters").url("Invalid image URL"),
+  source: z.string().trim().min(1, "Image source is required").max(1000, "Image source must be at most 1000 characters").url("Invalid image URL").refine(
+    (url) => {
+      try {
+        const urlObj = new URL(url);
+        const pathname = urlObj.pathname.toLowerCase();
+        const supportedExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'];
+        const hasSupportedExtension = supportedExtensions.some(ext => pathname.endsWith(ext));
+        return hasSupportedExtension;
+      } catch {
+        return false;
+      }
+    },
+    "Image must be a valid image file (JPG, JPEG, PNG, GIF, WEBP, or SVG)"
+  ),
   imageTypeId: z.number().int().positive().optional()
 });

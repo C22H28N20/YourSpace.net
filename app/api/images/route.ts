@@ -3,8 +3,12 @@ import { badRequestResponse, createImage, getCurrentUser, internalErrorResponse,
 import { imageSchema } from "@/lib/validation";
 
 export async function GET() {
-  // Image metadata is public even though creation is authenticated.
-  const images = await listImages();
+  // Only return images for the authenticated user
+  const user = await getCurrentUser();
+  if (!user) {
+    return unauthorizedResponse();
+  }
+  const images = await listImages(user.id);
   return NextResponse.json({ images });
 }
 
@@ -29,7 +33,7 @@ export async function POST(request: Request) {
       return badRequestResponse(parsed.error.issues[0]?.message ?? "Invalid image data");
     }
 
-    const image = await createImage(parsed.data);
+    const image = await createImage({ ...parsed.data, userId: user.id });
     return NextResponse.json({ image });
   } catch {
     return internalErrorResponse();

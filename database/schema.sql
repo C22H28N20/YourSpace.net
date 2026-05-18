@@ -8,8 +8,11 @@ CREATE TABLE IF NOT EXISTS image_types(
 
 CREATE TABLE IF NOT EXISTS images (
     image_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
     image_source TEXT NOT NULL,
     image_type_id INTEGER,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES "User"(user_id),
     FOREIGN KEY (image_type_id) REFERENCES image_types(image_type_id)
 );
 
@@ -143,6 +146,7 @@ CREATE TABLE IF NOT EXISTS room_invites (
 -- Indexes for performance
 CREATE INDEX IF NOT EXISTS idx_messages_sender ON messages(sender_id);
 CREATE INDEX IF NOT EXISTS idx_images_type ON images(image_type_id);
+CREATE INDEX IF NOT EXISTS idx_images_user ON images(user_id);
 CREATE INDEX IF NOT EXISTS idx_friendlist_user1 ON Friendlist(user_1_id);
 CREATE INDEX IF NOT EXISTS idx_friendlist_user2 ON Friendlist(user_2_id);
 CREATE INDEX IF NOT EXISTS idx_private_msg_sender ON private_msg(sender_id);
