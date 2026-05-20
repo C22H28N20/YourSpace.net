@@ -77,24 +77,33 @@ export function forbiddenResponse(message = "Forbidden") {
 export function requireSameOrigin(request: Request) {
   const requestOrigin = request.headers.get("origin");
   const requestUrl = new URL(request.url);
-  
-  // For Railway and other proxied environments, prioritize x-forwarded headers
-  const forwardedHost = request.headers.get("x-forwarded-host");
-  const forwardedProto = request.headers.get("x-forwarded-proto");
+
+  // For Railway and other proxied environments, collect all possible host/proto pairs.
+  const forwardedHostRaw = request.headers.get("x-forwarded-host");
+  const forwardedProtoRaw = request.headers.get("x-forwarded-proto");
   const host = request.headers.get("host");
 
-  // Determine the actual origin the request came from
-  let expectedOrigin: string;
-  
-  if (forwardedHost && forwardedProto) {
-    // Railway and other proxies set these headers
-    expectedOrigin = `${forwardedProto}://${forwardedHost}`;
-  } else {
-    // Fallback to host header and request URL protocol
-    const actualHost = host || requestUrl.hostname;
-    const actualProto = forwardedProto || requestUrl.protocol.replace(":", "");
-    expectedOrigin = `${actualProto}://${actualHost}`;
+  const forwardedHosts = forwardedHostRaw
+    ? forwardedHostRaw.split(",").map((entry) => entry.trim()).filter(Boolean)
+    : [];
+  const forwardedProtos = forwardedProtoRaw
+    ? forwardedProtoRaw.split(",").map((entry) => entry.trim()).filter(Boolean)
+    : [];
+
+  const normalizedProto = requestUrl.protocol.replace(":", "");
+  const expectedOrigins = new Set<string>();
+
+  for (const candidateHost of forwardedHosts) {
+    for (const candidateProto of (forwardedProtos.length > 0 ? forwardedProtos : [normalizedProto])) {
+      expectedOrigins.add(`${candidateProto}://${candidateHost}`);
+    }
   }
+
+  if (host) {
+    expectedOrigins.add(`${normalizedProto}://${host}`);
+  }
+
+  expectedOrigins.add(requestUrl.origin);
 
   if (!requestOrigin) {
     // Allow requests without origin header (some clients don't send it)
@@ -103,8 +112,8 @@ export function requireSameOrigin(request: Request) {
 
   try {
     const incomingOrigin = new URL(requestOrigin).origin;
-    if (incomingOrigin !== expectedOrigin) {
-      console.warn(`[CORS] Origin mismatch: got ${incomingOrigin}, expected ${expectedOrigin}`);
+    if (!expectedOrigins.has(incomingOrigin)) {
+      console.warn(`[CORS] Origin mismatch: got ${incomingOrigin}, expected one of ${Array.from(expectedOrigins).join(", ")}`);
       return forbiddenResponse();
     }
   } catch (err) {
