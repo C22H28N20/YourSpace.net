@@ -1,4 +1,4 @@
-"use client";
+push a commit with the msg " Fixed banner issue ""use client";
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
