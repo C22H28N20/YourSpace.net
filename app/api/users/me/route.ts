@@ -47,6 +47,7 @@ export async function PATCH(request: Request) {
     const updated = await updateProfile(user.id, parsed.data);
     return NextResponse.json({ user: updated });
   } catch (error) {
+    console.error("[API /api/users/me] PATCH error:", error);
     if (error instanceof Error && error.message === "USERNAME_TAKEN") {
       return badRequestResponse("Username already taken");
     }

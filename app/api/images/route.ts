@@ -35,7 +35,8 @@ export async function POST(request: Request) {
 
     const image = await createImage({ ...parsed.data, userId: user.id });
     return NextResponse.json({ image });
-  } catch {
+  } catch (error) {
+    console.error("[API /api/images] POST error:", error);
     return internalErrorResponse();
   }
 }
