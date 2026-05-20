@@ -110,6 +110,21 @@ function initializeDatabase() {
       ensure("profile_img_scale", "REAL DEFAULT 1");
 
       db.prepare(`UPDATE user_profile SET color_blind_mode = 'default' WHERE color_blind_mode IS NULL OR color_blind_mode = ''`).run();
+      // Ensure images table has a user_id column (older DBs may lack it)
+      try {
+        const imageCols = db.prepare("PRAGMA table_info(images)").all() as Array<{ name: string }>;
+        const imageColSet = new Set(imageCols.map((c) => c.name));
+        if (!imageColSet.has("user_id")) {
+          try {
+            db.prepare(`ALTER TABLE images ADD COLUMN user_id INTEGER`).run();
+            console.log(`[DB] Added missing column images.user_id`);
+          } catch (err) {
+            console.warn(`[DB] Failed adding images.user_id column:`, err);
+          }
+        }
+      } catch (err) {
+        console.warn("[DB] Could not check images table columns:", err);
+      }
     } catch (err) {
       console.warn("[DB] Migration check failed:", err);
     }
